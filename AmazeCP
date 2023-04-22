@@ -1,0 +1,139 @@
+// How far from goal
+//
+// signal high-closer, low-farther
+function delta () {
+    old = dist
+    howFar()
+    closer = 0
+    if (dist < old) {
+        closer = 1
+        music.playTone(784, music.beat(BeatFraction.Quarter))
+    }
+    if (dist > old) {
+        closer = -1
+        music.playTone(131, music.beat(BeatFraction.Quarter))
+    }
+}
+function howFar () {
+    xdiff = 10 - x
+    ydiff = 10 - y
+    dist = Math.sqrt(xdiff * xdiff + ydiff * ydiff)
+}
+// draw wall at dir side
+function makeWall (dir: number, color2: number) {
+    if (dir == 0) {
+        for (let value of north) {
+            light.setPixelColor(value, color2)
+        }
+    }
+    if (dir == 1) {
+        for (let value of east) {
+            light.setPixelColor(value, color2)
+        }
+    }
+    if (dir == 2) {
+        for (let value of south) {
+            light.setPixelColor(value, color2)
+        }
+    }
+    if (dir == 3) {
+        for (let value of west) {
+            light.setPixelColor(value, color2)
+        }
+    }
+}
+// create a room, no more than 3 walls
+function doNewRoom () {
+    roomx = [0, 0, 0, 0]
+    for (let i = 0; i < 3; i++) {
+        roomx[Math.randomRange(0, 3)] = 1
+    }
+}
+// create, display new wall
+function newRoom () {
+    doNewRoom()
+    light.clear()
+    for (let index2 = 0; index2 <= 3; index2++) {
+        if (roomx[index2] == 1) {
+            makeWall(index2, Colors.Blue)
+        }
+    }
+}
+// move west or bounce
+input.onGesture(Gesture.TiltLeft, function () {
+    if (1 == roomx[3]) {
+        makeWall(3, Colors.Red)
+        music.pewPew.play()
+        pause(100)
+        makeWall(3, Colors.Blue)
+    } else {
+        newRoom()
+        x += -1
+        delta()
+    }
+})
+// move south or bounce
+input.onGesture(Gesture.TiltUp, function () {
+    if (1 == roomx[2]) {
+        makeWall(2, Colors.Red)
+        music.pewPew.play()
+        pause(100)
+        makeWall(2, Colors.Blue)
+    } else {
+        newRoom()
+        y += 1
+        delta()
+    }
+})
+// move east or bounce
+input.onGesture(Gesture.TiltRight, function () {
+    if (1 == roomx[1]) {
+        makeWall(1, Colors.Red)
+        music.pewPew.play()
+        pause(100)
+        makeWall(1, Colors.Blue)
+    } else {
+        newRoom()
+        x += 1
+        delta()
+    }
+})
+// move north or bounce
+input.onGesture(Gesture.TiltDown, function () {
+    if (1 == roomx[0]) {
+        makeWall(0, Colors.Red)
+        music.pewPew.play()
+        pause(100)
+        makeWall(0, Colors.Blue)
+    } else {
+        newRoom()
+        y += -1
+        delta()
+    }
+})
+let roomx: number[] = []
+let ydiff = 0
+let xdiff = 0
+let closer = 0
+let dist = 0
+let old = 0
+let y = 0
+let x = 0
+let east: number[] = []
+let west: number[] = []
+let south: number[] = []
+let north: number[] = []
+north = [1, 0, 9, 8]
+south = [3, 4, 5, 6]
+west = [1, 2, 3]
+east = [6, 7, 8]
+x = 0
+y = 0
+newRoom()
+// check to see if traveler has arrived.
+forever(function () {
+    if (x == 10 && y == 10) {
+        light.showAnimation(light.rainbowAnimation, 500)
+        music.magicWand.playUntilDone()
+    }
+})
